@@ -1,0 +1,32 @@
+
+
+services:
+  postgres:
+    image: 'postgres:15'
+    container_name: java_tutotial_postgres
+    restart: always
+    environment:
+      - 'POSTGRES_DB=java_tutotial'
+      - 'POSTGRES_PASSWORD=12345678'
+      - 'POSTGRES_USER=postgres'
+    ports:
+      - '5433:5432'
+
+  # redis:
+  #   image: redis:latest
+  #   container_name: redis
+  #   restart: always
+  #   ports:
+  #     - "6379:6379"
+
+  app:
+    build: .
+    depends_on:
+      # - redis
+      - postgres
+      # environment:
+      # - SPRING_CACHE_TYPE=redis
+      # - SPRING_REDIS_HOST=redis
+      # - SPRING_REDIS_PORT=6379
+    ports:
+      - "8080:8080"
