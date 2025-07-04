@@ -20,12 +20,15 @@ public class UserService {
         UserModel userModel = new UserModel();
         userModel.setFirstName(addUserDto.getFirstname());
         userModel.setLastName(addUserDto.getLastName());
+        userModel.setEmail(addUserDto.getEmail());
 
         UserModel userModel2 = userRepository.save(userModel);
         UserResponseDto userResponseDto = new UserResponseDto(
                 userModel2.getId(),
                 userModel2.getFirstName(),
-                userModel2.getLastName()
+                userModel2.getLastName(),
+                userModel2.getEmail(),
+                userModel2.getPhoneNumber()
         );
         return userResponseDto;
     }

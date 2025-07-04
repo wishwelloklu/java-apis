@@ -1,6 +1,7 @@
 package com.example.java_tutorial.models;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,4 +32,11 @@ public class UserModel {
 
     @NotNull
     private String lastName;
+
+    @NotNull 
+    private String phoneNumber;
+
+    @NotNull
+    @Column(unique = true)
+    private String email;
 }

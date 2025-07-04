@@ -16,4 +16,12 @@ public class AddUserDto {
     @NotNull(message = "Last name is required")
     private String lastName;
 
+    @Schema(description = "Phone number", example = "0241234567")
+    @NotNull(message = "Phone number is required")
+    private String phoneNumber;
+
+    @Schema(description = "Email", example = "email@example.com")
+    @NotNull(message = "Email is required")
+    private String email;
+
 }
