@@ -7,8 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.java_tutorial.dto.AddUserDto;
 import com.example.java_tutorial.dto.responses.ApiResponseDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
-import com.example.java_tutorial.services.UserService;
-
+import com.example.java_tutorial.services.UserServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,15 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
-    private UserService userService;
+    private UserServiceImpl userService;
 
-    public UserController(UserService userService) {
+    public UserController(UserServiceImpl userService) {
         this.userService = userService;
     }
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponseDto<UserResponseDto>> addUser(@RequestBody AddUserDto userDto) {
-
+        // System.out.println("Received request body: " + userDto.toString());
         try {
             final UserResponseDto responseDto = userService.addUser(userDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -34,6 +33,32 @@ public class UserController {
                             "User creates successfully",
                             responseDto));
         } catch (ResponseStatusException e) {
+            System.err.println("error" + e.getMessage());
+            return ResponseEntity.status(e.getStatusCode()).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null)); // 500 Internal Server Error
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponseDto<UserResponseDto>> login(String email, String password) {
+        try {
+            UserResponseDto uResponseDto = userService.login(email, password);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ApiResponseDto<>(
+                            true,
+                            "User creates successfully",
+                            uResponseDto));
+        } catch (ResponseStatusException e) {
+            System.err.println("error" + e.getMessage());
             return ResponseEntity.status(e.getStatusCode()).body(
                     new ApiResponseDto<>(
                             false,

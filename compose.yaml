@@ -24,9 +24,12 @@ services:
     depends_on:
       # - redis
       - postgres
-      # environment:
+    environment:
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true 
+      - SPRING_DOCKER_COMPOSE_ENABLED=false
+
       # - SPRING_CACHE_TYPE=redis
       # - SPRING_REDIS_HOST=redis
       # - SPRING_REDIS_PORT=6379
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"

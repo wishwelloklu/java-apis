@@ -1,35 +1,17 @@
 package com.example.java_tutorial.services;
 
-import org.springframework.stereotype.Service;
-
 import com.example.java_tutorial.dto.AddUserDto;
+import com.example.java_tutorial.dto.UpdateUserDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
-import com.example.java_tutorial.models.UserModel;
-import com.example.java_tutorial.repository.UserRepository;
 
-@Service
-public class UserService {
-    private UserRepository userRepository;
+public interface UserService {
 
+    UserResponseDto addUser(AddUserDto addUserDto);
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    UserResponseDto login(String email, String password);
 
-    public UserResponseDto addUser(AddUserDto addUserDto) {
-        UserModel userModel = new UserModel();
-        userModel.setFirstName(addUserDto.getFirstname());
-        userModel.setLastName(addUserDto.getLastName());
-        userModel.setEmail(addUserDto.getEmail());
+    UserResponseDto updateUser(UpdateUserDto updateUserDto, Long id);
 
-        UserModel userModel2 = userRepository.save(userModel);
-        UserResponseDto userResponseDto = new UserResponseDto(
-                userModel2.getId(),
-                userModel2.getFirstName(),
-                userModel2.getLastName(),
-                userModel2.getEmail(),
-                userModel2.getPhoneNumber()
-        );
-        return userResponseDto;
-    }
+    String deleteUser(Long id);
+    
 }
