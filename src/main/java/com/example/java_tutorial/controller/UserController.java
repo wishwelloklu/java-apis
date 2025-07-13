@@ -5,9 +5,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.java_tutorial.dto.AddUserDto;
+import com.example.java_tutorial.dto.LoginRequestDto;
 import com.example.java_tutorial.dto.responses.ApiResponseDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
 import com.example.java_tutorial.services.UserServiceImpl;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,13 +53,22 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponseDto<UserResponseDto>> login(String email, String password) {
+
+    public ResponseEntity<ApiResponseDto<UserResponseDto>> login(@Valid @RequestBody LoginRequestDto loginRequest) {
+
         try {
-            UserResponseDto uResponseDto = userService.login(email, password);
+            String message = "";
+            UserResponseDto uResponseDto = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+            if (uResponseDto == null) {
+                message = "No user found";
+            } else {
+                message = "Login successfully";
+            }
+            // tipsy23Adom
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ApiResponseDto<>(
-                            true,
-                            "User creates successfully",
+                            uResponseDto != null,
+                            message,
                             uResponseDto));
         } catch (ResponseStatusException e) {
             System.err.println("error" + e.getMessage());

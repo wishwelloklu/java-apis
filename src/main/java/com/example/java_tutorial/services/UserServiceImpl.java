@@ -19,8 +19,10 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     private SecurityConfig securityConfig;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, SecurityConfig securityConfig) {
         this.userRepository = userRepository;
+        this.securityConfig = securityConfig;
+
     }
 
     @Override
@@ -31,7 +33,7 @@ public class UserServiceImpl implements UserService {
             userModel.setLastName(addUserDto.getLastName());
             userModel.setEmail(addUserDto.getEmail());
             userModel.setPhoneNumber(addUserDto.getPhoneNumber());
-            userModel.setPassword(addUserDto.getPassword());
+            userModel.setPassword(securityConfig.passwordEncoder().encode(addUserDto.getPassword()));
 
             UserModel userModel2 = userRepository.save(userModel);
             UserResponseDto userResponseDto = new UserResponseDto(
@@ -55,9 +57,48 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto login(String email, String password) {
+        
         UserModel userModel = userRepository.findByEmail(email);
-        boolean isPasswordMatch = securityConfig.passwordEncoder().matches(password, userModel.getPassword());
-        if (isPasswordMatch) {
+        if (userModel != null) {
+            boolean isPasswordMatch = securityConfig.passwordEncoder().matches(password, userModel.getPassword());
+            if (isPasswordMatch) {
+                UserResponseDto userResponseDto = new UserResponseDto(
+                        userModel.getId(),
+                        userModel.getFirstName(),
+                        userModel.getLastName(),
+                        userModel.getEmail(),
+                        userModel.getPhoneNumber());
+
+                return userResponseDto;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public UserResponseDto updateUser(UpdateUserDto updateUserDto, Long id) {
+
+        try {
+            UserModel userModel = userRepository.findById(id).get();
+
+            if (Objects.nonNull(updateUserDto.getEmail()) && updateUserDto.getEmail() != "") {
+                userModel.setEmail(updateUserDto.getEmail());
+            }
+
+            if (Objects.nonNull(updateUserDto.getFirstName()) && updateUserDto.getFirstName() != "") {
+                userModel.setEmail(updateUserDto.getFirstName());
+            }
+
+            if (Objects.nonNull(updateUserDto.getPhoneNumber()) && updateUserDto.getPhoneNumber() != "") {
+                userModel.setEmail(updateUserDto.getPhoneNumber());
+            }
+
+            if (Objects.nonNull(updateUserDto.getLastName()) && updateUserDto.getLastName() != "") {
+                userModel.setEmail(updateUserDto.getLastName());
+            }
+
+            userRepository.save(userModel);
+
             UserResponseDto userResponseDto = new UserResponseDto(
                     userModel.getId(),
                     userModel.getFirstName(),
@@ -66,41 +107,11 @@ public class UserServiceImpl implements UserService {
                     userModel.getPhoneNumber());
 
             return userResponseDto;
+        } catch (Exception e) {
+            e.printStackTrace();
+            
+            return null;
         }
-        return null;
-    }
-
-    @Override
-    public UserResponseDto updateUser(UpdateUserDto updateUserDto, Long id) {
-
-        UserModel userModel = userRepository.findById(id).get();
-
-        if (Objects.nonNull(updateUserDto.getEmail()) && updateUserDto.getEmail() != "") {
-            userModel.setEmail(updateUserDto.getEmail());
-        }
-
-        if (Objects.nonNull(updateUserDto.getFirstName()) && updateUserDto.getFirstName() != "") {
-            userModel.setEmail(updateUserDto.getFirstName());
-        }
-
-        if (Objects.nonNull(updateUserDto.getPhoneNumber()) && updateUserDto.getPhoneNumber() != "") {
-            userModel.setEmail(updateUserDto.getPhoneNumber());
-        }
-
-        if (Objects.nonNull(updateUserDto.getLastName()) && updateUserDto.getLastName() != "") {
-            userModel.setEmail(updateUserDto.getLastName());
-        }
-
-        userRepository.save(userModel);
-
-        UserResponseDto userResponseDto = new UserResponseDto(
-                userModel.getId(),
-                userModel.getFirstName(),
-                userModel.getLastName(),
-                userModel.getEmail(),
-                userModel.getPhoneNumber());
-
-        return userResponseDto;
     }
 
     @Override
