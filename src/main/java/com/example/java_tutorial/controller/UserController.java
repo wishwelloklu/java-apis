@@ -6,6 +6,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.java_tutorial.dto.AddUserDto;
 import com.example.java_tutorial.dto.LoginRequestDto;
+import com.example.java_tutorial.dto.UpdateUserDto;
 import com.example.java_tutorial.dto.responses.ApiResponseDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
 import com.example.java_tutorial.services.UserServiceImpl;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -72,6 +75,58 @@ public class UserController {
                             uResponseDto));
         } catch (ResponseStatusException e) {
             System.err.println("error" + e.getMessage());
+            return ResponseEntity.status(e.getStatusCode()).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null)); // 500 Internal Server Error
+        }
+    }
+
+    @PostMapping("/update_user/{id}")
+    public ResponseEntity<ApiResponseDto<UserResponseDto>> postMethodName(
+            @PathVariable Long id,
+            @RequestBody UpdateUserDto entity) {
+
+        try {
+            UserResponseDto userResponseDto = userService.updateUser(entity, id);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ApiResponseDto<>(
+                            true,
+                            "User updated successfully",
+                            userResponseDto));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null)); //
+        }
+    }
+
+
+    @DeleteMapping("/delete_user/{id}")
+    public ResponseEntity<ApiResponseDto<String>> deleteUser(@PathVariable Long id) {
+        try {
+            String message = userService.deleteUser(id);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ApiResponseDto<>(
+                            true,
+                            message,
+                            null));
+        } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).body(
                     new ApiResponseDto<>(
                             false,

@@ -1,7 +1,6 @@
 package com.example.java_tutorial.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Entity;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
