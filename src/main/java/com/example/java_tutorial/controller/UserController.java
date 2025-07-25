@@ -5,10 +5,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.java_tutorial.dto.AddUserDto;
+import com.example.java_tutorial.dto.GenerateOtpDto;
 import com.example.java_tutorial.dto.LoginRequestDto;
 import com.example.java_tutorial.dto.UpdateUserDto;
+import com.example.java_tutorial.dto.VerifyOtpDto;
 import com.example.java_tutorial.dto.responses.ApiResponseDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
+import com.example.java_tutorial.services.OtpServiceImpl;
+import com.example.java_tutorial.services.RedisService;
 import com.example.java_tutorial.services.UserServiceImpl;
 
 import jakarta.validation.Valid;
@@ -24,16 +28,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/v1/user")
 public class UserController {
     private UserServiceImpl userService;
+    private OtpServiceImpl otpService;
+    private RedisService redisService;
 
-    public UserController(UserServiceImpl userService) {
+    public UserController(UserServiceImpl userService, OtpServiceImpl otpService, RedisService redisService) {
         this.userService = userService;
+        this.otpService = otpService;
+        this.redisService = redisService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<ApiResponseDto<UserResponseDto>> addUser(@RequestBody AddUserDto userDto) {
-        // System.out.println("Received request body: " + userDto.toString());
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponseDto<String>> addUser(@RequestBody AddUserDto userDto) {
+
         try {
-            final UserResponseDto responseDto = userService.addUser(userDto);
+            userDto.setAction("register");
+            redisService.setObject(userDto.getEmail(), userDto);
+            final String responseDto = otpService.generateOtp(userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     new ApiResponseDto<>(
                             true,
@@ -116,7 +126,6 @@ public class UserController {
         }
     }
 
-
     @DeleteMapping("/delete_user/{id}")
     public ResponseEntity<ApiResponseDto<String>> deleteUser(@PathVariable Long id) {
         try {
@@ -126,6 +135,81 @@ public class UserController {
                             true,
                             message,
                             null));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null)); // 500 Internal Server Error
+        }
+    }
+
+    @PostMapping("/generate_otp")
+    public ResponseEntity<ApiResponseDto<String>> generateOtp(@RequestBody GenerateOtpDto entity) {
+        try {
+            String otp = otpService.generateOtp(entity.getEmail());
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ApiResponseDto<>(
+                            true,
+                            "OTP generated successfully",
+                            otp));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    new ApiResponseDto<>(
+                            false,
+                            e.getMessage(),
+                            null)); // 500 Internal Server Error
+        }
+    }
+
+    @PostMapping("/verify_otp")
+    public ResponseEntity<ApiResponseDto<Object>> verifyOtp(@RequestBody VerifyOtpDto verifyOtpDto) {
+        Object respObject = new Object();
+        try {
+            Boolean isVerified = otpService.verifyOtp(verifyOtpDto.getOtp(), verifyOtpDto.getEmail());
+
+            if (isVerified == null) {
+                return ResponseEntity.status(HttpStatus.OK).body(
+                        new ApiResponseDto<>(
+                                false,
+                                "OTP has expired",
+                                null));
+            } else if (isVerified) {
+
+                otpService.clearOtp(verifyOtpDto.getEmail());
+
+                Object redisData = redisService.getObject(verifyOtpDto.getEmail());
+                if (redisData.getClass() == AddUserDto.class) {
+                    AddUserDto addUserDto = (AddUserDto) redisData;
+                    respObject = userService.registerUser(addUserDto);
+                } else if (redisData.getClass() == LoginRequestDto.class) {
+                    LoginRequestDto loginRequestDto = (LoginRequestDto) redisData;
+                    respObject = userService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(
+                        new ApiResponseDto<>(
+                                true,
+                                "OTP verified successfully",
+                                respObject));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                        new ApiResponseDto<>(
+                                false,
+                                "Invalid OTP",
+                                null));
+            }
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).body(
                     new ApiResponseDto<>(

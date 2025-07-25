@@ -21,7 +21,7 @@ public class AddUserDto {
 
     @Schema(description = "Phone number", example = "0241234567")
     @NotNull(message = "Phone number is required")
-    @Size(min = 10,message = "phone number is")
+    @Size(min = 10, message = "phone number is")
     private String phoneNumber;
 
     @Schema(description = "Email", example = "email@example.com")
@@ -31,5 +31,7 @@ public class AddUserDto {
     @Schema(description = "Password", example = "**********")
     @NotNull(message = "Password is required")
     private String password;
+
+    private String action;
 
 }

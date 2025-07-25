@@ -12,24 +12,36 @@ services:
     ports:
       - '5433:5432'
 
-  # redis:
-  #   image: redis:latest
-  #   container_name: redis
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  redisinsight:
+    image: redislabs/redisinsight:1.14.0
+    restart: always
+    ports:
+      - "10002:8001"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    
 
   app:
     build: .
     depends_on:
-      # - redis
+      - redis
       - postgres
     environment:
       - SPRING_DEVTOOLS_RESTART_ENABLED=true 
       - SPRING_DOCKER_COMPOSE_ENABLED=false
 
-      # - SPRING_CACHE_TYPE=redis
-      # - SPRING_REDIS_HOST=redis
-      # - SPRING_REDIS_PORT=6379
+      - SPRING_CACHE_TYPE=redis
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
     # ports:
     #   - "8080:8080"

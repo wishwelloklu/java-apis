@@ -6,7 +6,7 @@ import com.example.java_tutorial.dto.responses.UserResponseDto;
 
 public interface UserService {
 
-    UserResponseDto addUser(AddUserDto addUserDto);
+    UserResponseDto registerUser(AddUserDto addUserDto);
 
     UserResponseDto login(String email, String password);
 

@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto addUser(AddUserDto addUserDto) {
+    public UserResponseDto registerUser(AddUserDto addUserDto) {
         try {
             UserModel userModel = new UserModel();
             userModel.setFirstName(addUserDto.getFirstName());
