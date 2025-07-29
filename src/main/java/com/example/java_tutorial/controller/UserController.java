@@ -42,6 +42,16 @@ public class UserController {
 
         try {
             userDto.setAction("register");
+            AddUserDto user = (AddUserDto) redisService.getObject(userDto.getEmail());
+            System.out.println("user exist" + user != null);
+            if (user != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(
+                        new ApiResponseDto<>(
+                                true,
+                                "User with this email already exists",
+                                null));
+            }
+
             redisService.setObject(userDto.getEmail(), userDto);
             final String responseDto = otpService.generateOtp(userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -187,10 +197,17 @@ public class UserController {
                                 "OTP has expired",
                                 null));
             } else if (isVerified) {
-
+                System.out.println("Here is " + isVerified);
                 otpService.clearOtp(verifyOtpDto.getEmail());
 
                 Object redisData = redisService.getObject(verifyOtpDto.getEmail());
+                if (redisData == null) {
+                    return ResponseEntity.status(HttpStatus.OK).body(
+                            new ApiResponseDto<>(
+                                    true,
+                                    "OTP verified, but no user data found",
+                                    null));
+                }
                 if (redisData.getClass() == AddUserDto.class) {
                     AddUserDto addUserDto = (AddUserDto) redisData;
                     respObject = userService.registerUser(addUserDto);
@@ -198,11 +215,19 @@ public class UserController {
                     LoginRequestDto loginRequestDto = (LoginRequestDto) redisData;
                     respObject = userService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
                 }
-                return ResponseEntity.status(HttpStatus.OK).body(
-                        new ApiResponseDto<>(
-                                true,
-                                "OTP verified successfully",
-                                respObject));
+                if (respObject != null) {
+                    return ResponseEntity.status(HttpStatus.OK).body(
+                            new ApiResponseDto<>(
+                                    true,
+                                    "OTP verified successfully",
+                                    respObject));
+                } else {
+                    return ResponseEntity.status(HttpStatus.OK).body(
+                            new ApiResponseDto<>(
+                                    true,
+                                    "OTP verified, but no user data found",
+                                    null));
+                }
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                         new ApiResponseDto<>(

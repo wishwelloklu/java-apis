@@ -11,13 +11,17 @@ services:
       - 'POSTGRES_USER=postgres'
     ports:
       - '5433:5432'
+    networks:
+      - app-network
 
-  redis:
-    image: redis:latest
-    container_name: redis
+  java_tutotial_redis:
+    image: redis:8.0
+    container_name: java_tutotial_redis
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - app-network
 
   redisinsight:
     image: redislabs/redisinsight:1.14.0
@@ -25,23 +29,31 @@ services:
     ports:
       - "10002:8001"
     depends_on:
-      - redis
+      - java_tutotial_redis
     environment:
-      - REDIS_HOST=redis
+      - REDIS_HOST=java_tutotial_redis
       - REDIS_PORT=6379
+    networks:
+      - app-network
     
 
   app:
     build: .
     depends_on:
-      - redis
+      - java_tutotial_redis
       - postgres
     environment:
       - SPRING_DEVTOOLS_RESTART_ENABLED=true 
       - SPRING_DOCKER_COMPOSE_ENABLED=false
 
       - SPRING_CACHE_TYPE=redis
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-    # ports:
-    #   - "8080:8080"
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    networks:
+      - app-network
+    ports:
+      - "8080:8080"
+
+networks:
+  app-network:
+    driver: bridge

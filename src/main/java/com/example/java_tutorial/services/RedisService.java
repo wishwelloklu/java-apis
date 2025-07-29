@@ -6,6 +6,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+
 @Service
 public class RedisService {
 
@@ -16,6 +18,12 @@ public class RedisService {
             RedisTemplate<String, Object> redisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
         this.redisTemplate = redisTemplate;
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("StringRedisTemplate injected? " + (stringRedisTemplate != null));
+        System.out.println("RedisTemplate injected? " + (redisTemplate != null));
     }
 
     // String operations
@@ -33,6 +41,7 @@ public class RedisService {
 
     // Object operations
     public void setObject(String key, Object value) {
+       
         redisTemplate.opsForValue().set(key, value);
     }
 
