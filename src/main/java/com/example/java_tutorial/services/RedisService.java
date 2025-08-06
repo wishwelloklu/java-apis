@@ -11,8 +11,8 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class RedisService {
 
-    private final StringRedisTemplate stringRedisTemplate;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private  StringRedisTemplate stringRedisTemplate;
+    private  RedisTemplate<String, Object> redisTemplate;
 
     public RedisService(StringRedisTemplate stringRedisTemplate,
             RedisTemplate<String, Object> redisTemplate) {

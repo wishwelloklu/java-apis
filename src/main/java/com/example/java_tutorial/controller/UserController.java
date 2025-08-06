@@ -53,7 +53,7 @@ public class UserController {
             }
 
             redisService.setObject(userDto.getEmail(), userDto);
-            final String responseDto = otpService.generateOtp(userDto.getEmail());
+             String responseDto = otpService.generateOtp(userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     new ApiResponseDto<>(
                             true,
