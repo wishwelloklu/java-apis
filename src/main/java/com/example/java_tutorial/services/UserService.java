@@ -1,7 +1,7 @@
 package com.example.java_tutorial.services;
 
-import com.example.java_tutorial.dto.AddUserDto;
-import com.example.java_tutorial.dto.UpdateUserDto;
+import com.example.java_tutorial.dto.request.AddUserDto;
+import com.example.java_tutorial.dto.request.UpdateUserDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
 
 public interface UserService {
@@ -10,8 +10,10 @@ public interface UserService {
 
     UserResponseDto login(String email, String password);
 
-    UserResponseDto updateUser(UpdateUserDto updateUserDto, Long id);
+    UserResponseDto updateUser(UpdateUserDto updateUserDto, String email);
 
-    String deleteUser(Long id);
-    
+    Boolean deleteUser(Long id);
+
+    Boolean fetchUser(String email);
+
 }

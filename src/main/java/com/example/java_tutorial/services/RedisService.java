@@ -11,12 +11,12 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class RedisService {
 
-    private  StringRedisTemplate stringRedisTemplate;
-    private  RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
-    public RedisService(StringRedisTemplate stringRedisTemplate,
+    public RedisService(StringRedisTemplate stringRedisTemplatess,
             RedisTemplate<String, Object> redisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
+        this.stringRedisTemplate = stringRedisTemplatess;
         this.redisTemplate = redisTemplate;
     }
 
@@ -35,13 +35,17 @@ public class RedisService {
         stringRedisTemplate.opsForValue().set(key, value, timeout, unit);
     }
 
+    public void setObjectWithExpiry(String key, Object value, long timeout, TimeUnit unit) {
+        redisTemplate.opsForValue().set(key, value, timeout, unit);
+    }
+
     public String getString(String key) {
         return stringRedisTemplate.opsForValue().get(key);
     }
 
     // Object operations
     public void setObject(String key, Object value) {
-       
+
         redisTemplate.opsForValue().set(key, value);
     }
 
@@ -49,7 +53,6 @@ public class RedisService {
         return redisTemplate.opsForValue().get(key);
     }
 
-    // Delete operations
     public void delete(String key) {
         stringRedisTemplate.delete(key);
     }

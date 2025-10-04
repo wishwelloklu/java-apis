@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.java_tutorial.config.SecurityConfig;
-import com.example.java_tutorial.dto.AddUserDto;
-import com.example.java_tutorial.dto.UpdateUserDto;
+import com.example.java_tutorial.dto.request.AddUserDto;
+import com.example.java_tutorial.dto.request.UpdateUserDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
 import com.example.java_tutorial.models.UserModel;
 import com.example.java_tutorial.repository.UserRepository;
@@ -57,10 +57,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto login(String email, String password) {
-        
+
         UserModel userModel = userRepository.findByEmail(email);
+
         if (userModel != null) {
+
             boolean isPasswordMatch = securityConfig.passwordEncoder().matches(password, userModel.getPassword());
+
             if (isPasswordMatch) {
                 UserResponseDto userResponseDto = new UserResponseDto(
                         userModel.getId(),
@@ -76,52 +79,72 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUser(UpdateUserDto updateUserDto, Long id) {
-
+    public UserResponseDto updateUser(UpdateUserDto updateUserDto, String email) {
         try {
-            UserModel userModel = userRepository.findById(id).get();
+            UserModel userModel = userRepository.findByEmail(email);
+            if (userModel == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user found");
+            }
 
             if (Objects.nonNull(updateUserDto.getEmail()) && updateUserDto.getEmail() != "") {
                 userModel.setEmail(updateUserDto.getEmail());
             }
 
             if (Objects.nonNull(updateUserDto.getFirstName()) && updateUserDto.getFirstName() != "") {
-                userModel.setEmail(updateUserDto.getFirstName());
+                userModel.setFirstName(updateUserDto.getFirstName());
             }
 
             if (Objects.nonNull(updateUserDto.getPhoneNumber()) && updateUserDto.getPhoneNumber() != "") {
-                userModel.setEmail(updateUserDto.getPhoneNumber());
+                userModel.setPhoneNumber(updateUserDto.getPhoneNumber());
             }
 
             if (Objects.nonNull(updateUserDto.getLastName()) && updateUserDto.getLastName() != "") {
-                userModel.setEmail(updateUserDto.getLastName());
+                userModel.setLastName(updateUserDto.getLastName());
             }
 
-            userRepository.save(userModel);
+            UserModel newUserModel = userRepository.save(userModel);
 
             UserResponseDto userResponseDto = new UserResponseDto(
-                    userModel.getId(),
-                    userModel.getFirstName(),
-                    userModel.getLastName(),
-                    userModel.getEmail(),
-                    userModel.getPhoneNumber());
+                    newUserModel.getId(),
+                    newUserModel.getFirstName(),
+                    newUserModel.getLastName(),
+                    newUserModel.getEmail(),
+                    newUserModel.getPhoneNumber());
 
             return userResponseDto;
         } catch (Exception e) {
+            System.out.println("newUserModel:" + e.getMessage());
             e.printStackTrace();
-            
             return null;
         }
     }
 
     @Override
-    public String deleteUser(Long id) {
+    public Boolean deleteUser(Long id) {
         try {
-            userRepository.deleteById(id);
-            return "User deleted successfully";
+            Boolean isUserExist = userRepository.findById(id).isPresent();
+            if (isUserExist) {
+                userRepository.deleteById(id);
+                return true;
+            } else {
+                return false;
+            }
         } catch (Exception e) {
 
-            return e.toString();
+            return false;
+        }
+    }
+
+    @Override
+    public Boolean fetchUser(String email) {
+        try {
+            UserModel userModel = userRepository.findByEmail(email);
+            if (userModel != null) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
         }
     }
 

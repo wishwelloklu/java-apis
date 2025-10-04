@@ -1,6 +1,5 @@
 package com.example.java_tutorial.models;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
@@ -22,6 +22,7 @@ import jakarta.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class UserModel {
 
     @Id
@@ -36,7 +37,7 @@ public class UserModel {
     @Column(name = "last_name")
     private String lastName;
 
-    @NotNull 
+    @NotNull
     @Column(name = "phone_number")
     private String phoneNumber;
 

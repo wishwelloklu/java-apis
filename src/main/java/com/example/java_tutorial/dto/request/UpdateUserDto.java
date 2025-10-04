@@ -1,4 +1,4 @@
-package com.example.java_tutorial.dto;
+package com.example.java_tutorial.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
@@ -17,7 +17,7 @@ public class UpdateUserDto {
     private String lastName;
 
     @Schema(description = "Phone number", example = "0241234567")
-    @Size(min = 10,message = "phone number is")
+    @Size(min = 10, message = "phone number is")
     private String phoneNumber;
 
     @Schema(description = "Email", example = "email@example.com")
