@@ -1,3 +1,65 @@
+#services:
+#  postgres:
+#    image: 'postgres:15'
+#    container_name: java_tutotial_postgres
+#    restart: always
+#    environment:
+#      - 'POSTGRES_DB=java_tutotial'
+#      - 'POSTGRES_PASSWORD=12345678'
+#      - 'POSTGRES_USER=postgres'
+#    ports:
+#      - '5433:5432'
+#    networks:
+#      - app-network
+
+#  java_tutotial_redis:
+#    image: redis:8.0
+#    container_name: java_tutotial_redis
+#    restart: always
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - app-network
+
+#  redisinsight:
+#    image: redislabs/redisinsight:1.14.0
+#    restart: always
+#    ports:
+#      - "10002:8001"
+#    depends_on:
+#      - java_tutotial_redis
+#    environment:
+#      - REDIS_HOST=java_tutotial_redis
+#      - REDIS_PORT=6379
+#    networks:
+#      - app-network
+
+#  java_app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    depends_on:
+#      - java_tutotial_redis
+#      - postgres
+#    environment:
+#      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+#      - SPRING_DOCKER_COMPOSE_ENABLED=false
+#      - SPRING_CACHE_TYPE=redis
+#      - SPRING_DATA_REDIS_HOST=java_tutotial_redis
+#      - SPRING_DATA_REDIS_PORT=6379
+#    networks:
+#      - app-network
+#    ports:
+#      - "8080:8080"
+#    restart: always
+#    volumes:
+#      - .:/app # host code for hot reload
+
+#networks:
+#  app-network:
+#    driver: bridge
+
+
 services:
   postgres:
     image: 'postgres:15'
@@ -8,9 +70,11 @@ services:
       - 'POSTGRES_PASSWORD=12345678'
       - 'POSTGRES_USER=postgres'
     ports:
-      - '5433:5432'
+      - '5433:5432' # Host Port 5433 -> Container Port 5432
     networks:
       - app-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # <--- SAVES YOUR DATA
 
   java_tutotial_redis:
     image: redis:8.0
@@ -37,13 +101,18 @@ services:
   java_app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     depends_on:
       - java_tutotial_redis
       - postgres
     environment:
       - SPRING_DEVTOOLS_RESTART_ENABLED=true
       - SPRING_DOCKER_COMPOSE_ENABLED=false
+      # Database Config (Crucial: Overrides localhost settings)
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/java_tutotial
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=12345678
+      # Redis Config
       - SPRING_CACHE_TYPE=redis
       - SPRING_DATA_REDIS_HOST=java_tutotial_redis
       - SPRING_DATA_REDIS_PORT=6379
@@ -51,10 +120,16 @@ services:
       - app-network
     ports:
       - "8080:8080"
-    restart: always
+      - "5005:5005" # Open this if you ever want to attach a debugger
+    restart: on-failure # Better than 'always' for dev (stops loops if code is broken)
     volumes:
-      - .:/app # host code for hot reload
+      - .:/app          # Syncs your code for Hot Reload
+      - .m2_cache:/root/.m2 # <--- CACHES DEPENDENCIES (Speeds up start)
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  .m2_cache: # Creates a persistent volume for Maven jars

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -59,6 +60,7 @@ public class PackageController {
                                 .body(new ApiResponseDto<>(true, "Packages fetched", allPackages));
         }
 
+        @PreAuthorize("hasRole('ADMIN')")
         @PostMapping("/verify")
         public ResponseEntity<ApiResponseDto<PackageResponse>> postMethodName(@RequestBody VerifyPackageDto entity,
                         @RequestHeader(value = "Authorization", required = false) String authHeader) {

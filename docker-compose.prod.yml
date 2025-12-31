@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: 'postgres:15'
+    restart: always
+    environment:
+      - 'POSTGRES_DB=java_tutotial'
+      - 'POSTGRES_PASSWORD=12345678'
+      - 'POSTGRES_USER=postgres'
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  java_tutotial_redis:
+    image: redis:8.0
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  java_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    depends_on:
+      - java_tutotial_redis
+      - postgres
+    environment:
+      # Production DB Config
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/java_tutotial
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=12345678
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate  # Safer for prod than 'update'
+      - SPRING_CACHE_TYPE=redis
+      - SPRING_DATA_REDIS_HOST=java_tutotial_redis
+      - SPRING_DATA_REDIS_PORT=6379
+    networks:
+      - app-network
+    ports:
+      - "8080:8080"
+    restart: always
+    # REMOVED: volumes mapping for ./src (We don't need source code on the server)
+    # REMOVED: DevTools environment variables
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,29 @@
+# --- Stage 1: Build the JAR ---
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+
+# Copy project config and download dependencies
+COPY pom.xml .
+# (Optional) Go offline to speed up future builds
+RUN mvn dependency:go-offline
+
+# Copy source code and build the application
+COPY src ./src
+# Build the JAR, skipping tests to save time
+RUN mvn clean package -DskipTests
+
+# --- Stage 2: The Actual Server ---
+# Use a smaller, lighter Java Runtime (JRE) instead of the full SDK
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Copy only the compiled JAR from Stage 1
+# Note: verify your jar name in target folder, usually it matches artifactId-version
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose the port
+EXPOSE 8080
+
+# Run the app efficiently
+ENTRYPOINT ["java", "-jar", "app.jar"]
+

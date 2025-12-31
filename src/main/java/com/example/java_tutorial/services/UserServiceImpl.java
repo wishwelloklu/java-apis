@@ -9,6 +9,7 @@ import com.example.java_tutorial.config.SecurityConfig;
 import com.example.java_tutorial.dto.request.AddUserDto;
 import com.example.java_tutorial.dto.request.UpdateUserDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
+import com.example.java_tutorial.enums.RoleEnum;
 import com.example.java_tutorial.models.UserModel;
 import com.example.java_tutorial.repository.UserRepository;
 
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
             userModel.setLastName(addUserDto.getLastName());
             userModel.setEmail(addUserDto.getEmail());
             userModel.setPhoneNumber(addUserDto.getPhoneNumber());
+            userModel.setRole(RoleEnum.USER);
             userModel.setPassword(securityConfig.passwordEncoder().encode(addUserDto.getPassword()));
 
             UserModel userModel2 = userRepository.save(userModel);
@@ -39,6 +41,7 @@ public class UserServiceImpl implements UserService {
                     userModel2.getFirstName(),
                     userModel2.getLastName(),
                     userModel2.getEmail(),
+
                     userModel2.getPhoneNumber());
             return userResponseDto;
         } catch (DataIntegrityViolationException e) {
@@ -113,8 +116,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    
-
     @Override
     public Boolean deleteUser(Long id, String email) {
 
@@ -159,7 +160,6 @@ public class UserServiceImpl implements UserService {
         }
         return null;
     }
-
 
     public boolean updateIfExist(String value) {
         return value != null && !value.isBlank();
