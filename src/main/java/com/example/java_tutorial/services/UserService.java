@@ -12,8 +12,10 @@ public interface UserService {
 
     UserResponseDto updateUser(UpdateUserDto updateUserDto, String email);
 
-    Boolean deleteUser(Long id);
+    Boolean deleteUser(Long id, String email);
 
     Boolean fetchUser(String email);
+
+    UserResponseDto fetchUserByEmail(String email);
 
 }

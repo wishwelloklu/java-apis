@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.java_tutorial.components.JwtUtil;
+import com.example.java_tutorial.models.UserModel;
+import com.example.java_tutorial.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthServiceImpl implements AuthService {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     public String authenticateTokenAndExtractEmail(String authHeader) throws ResponseStatusException {
@@ -27,5 +30,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return jwtUtil.extractUsername(token);
+    }
+
+    @Override
+    public UserModel getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }

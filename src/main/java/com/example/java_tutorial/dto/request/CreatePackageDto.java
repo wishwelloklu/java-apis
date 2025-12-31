@@ -5,6 +5,7 @@ import java.sql.Date;
 import com.example.java_tutorial.enums.PackageStatusEnum;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class CreatePackageDto {
 
     @Schema(description = "Quantity of the mineral in kilograms", example = "10.5")
     @NotNull(message = "Quantity is required")
+    @Min(value = 1, message = "Quantity must be greater than 0")
     private double quantity;
 
     @Schema(description = "Date of mining", example = "2023-12-25")
@@ -37,14 +39,6 @@ public class CreatePackageDto {
     @Schema(description = "Grade of the mineral", example = "High")
     @NotNull(message = "Grade is required")
     private String grade;
-
-    @Schema(description = "ID of the miner", example = "MINER-001")
-    @NotNull(message = "Miner ID is required")
-    private String minerId;
-
-    @Schema(description = "Name of the miner", example = "John Doe")
-    @NotNull(message = "Miner name is required")
-    private String minerName;
 
     @Schema(description = "Date of creation", example = "2023-12-25")
     @NotNull(message = "Creation date is required")

@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -47,11 +49,9 @@ public class PackageModel {
     @NotNull
     public String grade;
 
-    @NotNull
-    public String minerId;
-
-    @NotNull
-    public String minerName;
+    @ManyToOne
+    @JoinColumn(name = "miner_id")
+    public UserModel miner;
 
     @NotNull
     public Date createdAt;

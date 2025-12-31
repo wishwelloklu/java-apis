@@ -1,7 +1,5 @@
 package com.example.java_tutorial.services;
 
-import java.util.Objects;
-
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -75,64 +73,63 @@ public class UserServiceImpl implements UserService {
                 return userResponseDto;
             }
         }
-        return null;
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
     }
 
     @Override
     public UserResponseDto updateUser(UpdateUserDto updateUserDto, String email) {
-        try {
-            UserModel userModel = userRepository.findByEmail(email);
-            if (userModel == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user found");
-            }
 
-            if (Objects.nonNull(updateUserDto.getEmail()) && updateUserDto.getEmail() != "") {
-                userModel.setEmail(updateUserDto.getEmail());
-            }
-
-            if (Objects.nonNull(updateUserDto.getFirstName()) && updateUserDto.getFirstName() != "") {
-                userModel.setFirstName(updateUserDto.getFirstName());
-            }
-
-            if (Objects.nonNull(updateUserDto.getPhoneNumber()) && updateUserDto.getPhoneNumber() != "") {
-                userModel.setPhoneNumber(updateUserDto.getPhoneNumber());
-            }
-
-            if (Objects.nonNull(updateUserDto.getLastName()) && updateUserDto.getLastName() != "") {
-                userModel.setLastName(updateUserDto.getLastName());
-            }
-
-            UserModel newUserModel = userRepository.save(userModel);
-
-            UserResponseDto userResponseDto = new UserResponseDto(
-                    newUserModel.getId(),
-                    newUserModel.getFirstName(),
-                    newUserModel.getLastName(),
-                    newUserModel.getEmail(),
-                    newUserModel.getPhoneNumber());
-
-            return userResponseDto;
-        } catch (Exception e) {
-            System.out.println("newUserModel:" + e.getMessage());
-            e.printStackTrace();
-            return null;
+        UserModel userModel = userRepository.findByEmail(email);
+        if (userModel == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user found");
         }
+
+        if (updateIfExist(updateUserDto.getEmail())) {
+            userModel.setEmail(updateUserDto.getEmail());
+        }
+
+        if (updateIfExist(updateUserDto.getFirstName())) {
+            userModel.setFirstName(updateUserDto.getFirstName());
+        }
+
+        if (updateIfExist(updateUserDto.getPhoneNumber())) {
+            userModel.setPhoneNumber(updateUserDto.getPhoneNumber());
+        }
+
+        if (updateIfExist(updateUserDto.getLastName())) {
+            userModel.setLastName(updateUserDto.getLastName());
+        }
+
+        UserModel newUserModel = userRepository.save(userModel);
+
+        UserResponseDto userResponseDto = new UserResponseDto(
+                newUserModel.getId(),
+                newUserModel.getFirstName(),
+                newUserModel.getLastName(),
+                newUserModel.getEmail(),
+                newUserModel.getPhoneNumber());
+
+        return userResponseDto;
+
     }
 
-    @Override
-    public Boolean deleteUser(Long id) {
-        try {
-            Boolean isUserExist = userRepository.findById(id).isPresent();
-            if (isUserExist) {
-                userRepository.deleteById(id);
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
+    
 
-            return false;
+    @Override
+    public Boolean deleteUser(Long id, String email) {
+
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User ID cannot be null");
         }
+        UserModel userModel = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!userModel.getEmail().equals(email)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to delete this user");
+        }
+        userRepository.deleteById(id);
+        return true;
+
     }
 
     @Override
@@ -146,6 +143,26 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @Override
+    public UserResponseDto fetchUserByEmail(String email) {
+        UserModel userModel = userRepository.findByEmail(email);
+        if (userModel != null) {
+            UserResponseDto userResponseDto = new UserResponseDto(
+                    userModel.getId(),
+                    userModel.getFirstName(),
+                    userModel.getLastName(),
+                    userModel.getEmail(),
+                    userModel.getPhoneNumber());
+            return userResponseDto;
+        }
+        return null;
+    }
+
+
+    public boolean updateIfExist(String value) {
+        return value != null && !value.isBlank();
     }
 
 }
