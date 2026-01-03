@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class PackageServiceImpl implements PackageService {
 
     private final PackageRepository packageRepository;
+    private final AuthService authService;
 
     @Override
     public PackageResponse createPackage(CreatePackageDto createPackageDto, UserModel miner) {
@@ -107,7 +108,8 @@ public class PackageServiceImpl implements PackageService {
     }
 
     @Override
-    public ArrayList<PackageResponse> getAllPackages(String minerId) {
+    public ArrayList<PackageResponse> getAllPackages(String email) {
+        String minerId = authService.getUserByEmail(email).getId().toString();
         List<PackageModel> packages = packageRepository.findAllByMinerId(Long.valueOf(minerId));
         return packages.stream()
                 .map(packageModel -> PackageResponse.builder()

@@ -12,11 +12,13 @@ import com.example.java_tutorial.dto.request.UpdateUserDto;
 import com.example.java_tutorial.dto.request.VerifyOtpDto;
 import com.example.java_tutorial.dto.responses.ApiResponseDto;
 import com.example.java_tutorial.dto.responses.LoginResponse;
+import com.example.java_tutorial.dto.responses.RegisterResponseDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
 import com.example.java_tutorial.services.OtpServiceImpl;
 import com.example.java_tutorial.services.RedisService;
 import com.example.java_tutorial.services.UserService;
 import com.example.java_tutorial.services.AuthService;
+import com.example.java_tutorial.services.MailService;
 
 import jakarta.validation.Valid;
 
@@ -40,18 +42,21 @@ public class UserController {
         private RedisService redisService;
         private final JwtUtil jwtUtil;
         private final AuthService authService;
+        private final MailService mailService;
 
         public UserController(UserService userService, OtpServiceImpl otpService, RedisService redisService,
-                        AuthenticationManager authenticationManager, JwtUtil jwtUtil, AuthService authService) {
+                        AuthenticationManager authenticationManager, JwtUtil jwtUtil, AuthService authService,
+                        MailService mailService) {
                 this.userService = userService;
                 this.otpService = otpService;
                 this.redisService = redisService;
                 this.jwtUtil = jwtUtil;
                 this.authService = authService;
+                this.mailService = mailService;
         }
 
         @PostMapping("/register")
-        public ResponseEntity<ApiResponseDto<String>> addUser(@RequestBody AddUserDto userDto) {
+        public ResponseEntity<ApiResponseDto<RegisterResponseDto>> addUser(@RequestBody AddUserDto userDto) {
 
                 System.out.println("registration called");
                 userDto.setAction("register");
@@ -68,13 +73,19 @@ public class UserController {
                 }
 
                 redisService.setObjectWithExpiry(userDto.getEmail(), userDto, 1, TimeUnit.MINUTES);
-                String responseDto = otpService.generateOtp(userDto.getEmail());
+                String otp = otpService.generateOtp(userDto.getEmail());
+                System.err.println("otp " + otp);
+                mailService.sendEmail(userDto.getEmail(), "Your OTP Code",
+                                "Your One-Time Password (OTP) is: " + otp);
+
+                RegisterResponseDto registerResponseDto = new RegisterResponseDto("An OTP has been sent to your email",
+                                null);
 
                 return ResponseEntity.status(HttpStatus.CREATED).body(
                                 new ApiResponseDto<>(
                                                 true,
-                                                "User creates successfully",
-                                                responseDto));
+                                                "Success",
+                                                registerResponseDto));
         }
 
         @PostMapping("/login")
@@ -88,7 +99,7 @@ public class UserController {
                                 loginRequest.getPassword());
 
                 message = "Login successfully";
-                token = jwtUtil.generateToken(loginRequest.getEmail());
+                token = jwtUtil.generateToken(loginRequest.getEmail(), uResponseDto.getRole());
                 // Store refresh token in Redis with a longer expiry (e.g., 7 days)
                 redisService.setStringWithExpiry(refreshToken, loginRequest.getEmail(), 7, TimeUnit.DAYS);
                 loginResponse = new LoginResponse(uResponseDto, token, refreshToken);
@@ -153,7 +164,8 @@ public class UserController {
                                                 otp));
         }
 
-        //
+        // eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ3aXNod2VsbG9rbHVAZ21haWwuY29tIiwiaWF0IjoxNzY3NDYwMzE2LCJleHAiOjE3Njc0NjM5MTYsInJvbGUiOiJBRE1JTiJ9.eZlzpLT_ZY0nPuANPicPdgayZcDtWDO-po8YbhpUVRo
+        // eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ3aXNod2VsbG9rbHVAZ21haWwuY29tIiwiaWF0IjoxNzY3NDA5NTQ3LCJleHAiOjE3Njc0MTMxNDd9.EJTEHpi6OVv89pVYKd7BMvFwEhFu39Lq8lNYdofRFuU
         @PostMapping("/verify_otp")
         public ResponseEntity<ApiResponseDto<Object>> verifyOtp(@RequestBody VerifyOtpDto verifyOtpDto) {
                 Object respObject = new Object();
@@ -248,7 +260,7 @@ public class UserController {
                                         new ApiResponseDto<>(false, "User not found", null));
                 }
 
-                String newAccessToken = jwtUtil.generateToken(email);
+                String newAccessToken = jwtUtil.generateToken(email, userResponseDto.getRole());
                 String newRefreshToken = UUID.randomUUID().toString();
 
                 redisService.delete(refreshToken);

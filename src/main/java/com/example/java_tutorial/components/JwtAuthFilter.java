@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import io.jsonwebtoken.ExpiredJwtException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,14 +43,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         String username = null;
         String token = null;
+        String role = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            username = aJwtUtil.extractUsername(token);
+            try {
+                username = aJwtUtil.extractUsername(token);
+                role = aJwtUtil.extractRole(token);
+            } catch (ExpiredJwtException e) {
+                // Token expired, allow request to proceed (will be 403/401 by SecurityConfig)
+                System.out.println("JWT Token Expired: " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("JWT Parse Error: " + e.getMessage());
+            }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            User userDetails = new User(username, "", Collections.emptyList());
+            final User userDetails = new User(username, "",
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
 
             if (aJwtUtil.validateToken(token)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,

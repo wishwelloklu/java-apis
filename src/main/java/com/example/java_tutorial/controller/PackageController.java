@@ -21,9 +21,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 @RequestMapping("/api/v1/packages")
@@ -41,7 +40,7 @@ public class PackageController {
                 UserModel miner = authService.getUserByEmail(email);
 
                 PackageResponse packageResponse = packageServiceImpl.createPackage(entity, miner);
-               
+
                 return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponseDto<>(
                                 true,
                                 "Package created successfully",
@@ -49,12 +48,12 @@ public class PackageController {
 
         }
 
-        @GetMapping("/{id}")
-        public ResponseEntity<ApiResponseDto<ArrayList<PackageResponse>>> getPackages(@PathVariable String id,
+        @GetMapping("/")
+        public ResponseEntity<ApiResponseDto<ArrayList<PackageResponse>>> getPackages(
                         @RequestHeader(value = "Authorization", required = false) String authHeader) {
                 System.out.println("Token " + authHeader);
-                authService.authenticateTokenAndExtractEmail(authHeader);
-                ArrayList<PackageResponse> allPackages = packageServiceImpl.getAllPackages(id);
+                final String email = authService.authenticateTokenAndExtractEmail(authHeader);
+                ArrayList<PackageResponse> allPackages = packageServiceImpl.getAllPackages(email);
 
                 return ResponseEntity.status(HttpStatus.OK)
                                 .body(new ApiResponseDto<>(true, "Packages fetched", allPackages));

@@ -41,8 +41,8 @@ public class UserServiceImpl implements UserService {
                     userModel2.getFirstName(),
                     userModel2.getLastName(),
                     userModel2.getEmail(),
-
-                    userModel2.getPhoneNumber());
+                    userModel2.getPhoneNumber(),
+                    userModel2.getRole().toString());
             return userResponseDto;
         } catch (DataIntegrityViolationException e) {
             String message = e.getMessage();
@@ -71,7 +71,8 @@ public class UserServiceImpl implements UserService {
                         userModel.getFirstName(),
                         userModel.getLastName(),
                         userModel.getEmail(),
-                        userModel.getPhoneNumber());
+                        userModel.getPhoneNumber(),
+                        userModel.getRole().toString());
 
                 return userResponseDto;
             }
@@ -110,7 +111,8 @@ public class UserServiceImpl implements UserService {
                 newUserModel.getFirstName(),
                 newUserModel.getLastName(),
                 newUserModel.getEmail(),
-                newUserModel.getPhoneNumber());
+                newUserModel.getPhoneNumber(),
+                newUserModel.getRole().toString());
 
         return userResponseDto;
 
@@ -155,7 +157,8 @@ public class UserServiceImpl implements UserService {
                     userModel.getFirstName(),
                     userModel.getLastName(),
                     userModel.getEmail(),
-                    userModel.getPhoneNumber());
+                    userModel.getPhoneNumber(),
+                    userModel.getRole().toString());
             return userResponseDto;
         }
         return null;
