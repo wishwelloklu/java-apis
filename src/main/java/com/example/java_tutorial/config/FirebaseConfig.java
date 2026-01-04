@@ -18,14 +18,15 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            InputStream serviceAccount = new ClassPathResource("tracky-21023-firebase-adminsdk-fbsvc-70c6359056.json")
-                    .getInputStream();
+            ClassPathResource resource = new ClassPathResource("tracky-21023-firebase-adminsdk-fbsvc-70c6359056.json");
+            InputStream serviceAccount = resource.getInputStream();
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
+                // Initialize Firebase App
                 FirebaseApp.initializeApp(options);
             }
         } catch (IOException e) {
