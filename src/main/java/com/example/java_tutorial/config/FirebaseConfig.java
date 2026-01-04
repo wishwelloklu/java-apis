@@ -1,6 +1,7 @@
 package com.example.java_tutorial.config;
 
-import java.io.FileInputStream;
+import org.springframework.core.io.ClassPathResource;
+import java.io.InputStream;
 import java.io.IOException;
 
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +18,8 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            FileInputStream serviceAccount = new FileInputStream(
-                    "src/main/resources/tracky-21023-firebase-adminsdk-fbsvc-70c6359056.json");
+            InputStream serviceAccount = new ClassPathResource("tracky-21023-firebase-adminsdk-fbsvc-70c6359056.json")
+                    .getInputStream();
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
