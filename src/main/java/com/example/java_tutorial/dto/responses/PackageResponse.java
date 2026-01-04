@@ -17,7 +17,7 @@ import lombok.Setter;
 @Builder
 public class PackageResponse {
 
-    private Long id;
+    private String id;
 
     private String mineralType;
 

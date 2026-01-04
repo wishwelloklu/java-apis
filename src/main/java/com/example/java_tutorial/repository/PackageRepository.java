@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import com.example.java_tutorial.models.PackageModel;
 
 @Repository
-public interface PackageRepository extends JpaRepository<PackageModel, Long> {
+public interface PackageRepository extends JpaRepository<PackageModel, String> {
     List<PackageModel> findAllByMinerId(Long minerId);
 }

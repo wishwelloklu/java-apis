@@ -7,8 +7,7 @@ import com.example.java_tutorial.enums.PackageStatusEnum;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -31,8 +30,7 @@ import lombok.ToString;
 @ToString
 public class PackageModel {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    public String id;
 
     @NotNull
     public String mineralType;

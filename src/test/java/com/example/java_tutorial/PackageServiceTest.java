@@ -46,7 +46,7 @@ public class PackageServiceTest {
 
         // Mock the repository to return a 'Saved' package when .save() is called
         PackageModel savedPackage = PackageModel.builder()
-                .id(100L) // Simulate DB ID assignment
+                .id("100") // Simulate DB ID assignment
                 .mineralType("Gold")
                 .quantity(10.0)
                 .miner(miner) // Link the miner

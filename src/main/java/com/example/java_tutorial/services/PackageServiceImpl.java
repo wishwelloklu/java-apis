@@ -14,6 +14,10 @@ import com.example.java_tutorial.repository.PackageRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import java.time.Instant;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+
 @Service
 @RequiredArgsConstructor
 public class PackageServiceImpl implements PackageService {
@@ -25,6 +29,7 @@ public class PackageServiceImpl implements PackageService {
     public PackageResponse createPackage(CreatePackageDto createPackageDto, UserModel miner) {
 
         PackageModel packageModel = PackageModel.builder()
+                .id(String.valueOf(Instant.now().toEpochMilli())) // Generate Epoch Millis ID
                 .mineralType(createPackageDto.getMineralType())
                 .quantity(createPackageDto.getQuantity())
                 .mineDate(createPackageDto.getMineDate())
@@ -65,7 +70,10 @@ public class PackageServiceImpl implements PackageService {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Package ID cannot be null or empty");
         }
-        PackageModel packageModel = packageRepository.getReferenceById(Long.parseLong(id));
+        PackageModel packageModel = packageRepository.findById(id).orElse(null);
+        if (packageModel == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found");
+        }
 
         return PackageResponse.builder().id(packageModel.getId())
                 .mineralType(packageModel.getMineralType())
@@ -88,7 +96,8 @@ public class PackageServiceImpl implements PackageService {
             throw new IllegalArgumentException("Package ID cannot be null or empty");
         }
 
-        PackageModel packageModel = packageRepository.getReferenceById(Long.parseLong(id));
+        PackageModel packageModel = packageRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
         packageModel.setStatus(status);
         PackageModel savedPackage = packageRepository.save(packageModel);
         return PackageResponse.builder()
