@@ -102,7 +102,8 @@ public class PackageServiceImpl implements PackageService {
         packageModel.setStatus(status);
         PackageModel savedPackage = packageRepository.save(packageModel);
         notificationService.sendNotification(packageModel.miner, "Package Status Updated",
-                "Your package status has been updated to " + status, "STATUS_UPDATE", null);
+                "Your package with ID: " + packageModel.getId() + " has been updated to " + status, "STATUS_UPDATE",
+                null);
         return PackageResponse.builder()
                 .id(savedPackage.getId())
                 .mineralType(savedPackage.getMineralType())

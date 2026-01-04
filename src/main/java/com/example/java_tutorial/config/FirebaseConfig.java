@@ -18,7 +18,7 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            ClassPathResource resource = new ClassPathResource("tracky-21023-firebase-adminsdk-fbsvc-70c6359056.json");
+            ClassPathResource resource = new ClassPathResource("firebase-adminsdk.json");
             InputStream serviceAccount = resource.getInputStream();
 
             FirebaseOptions options = FirebaseOptions.builder()
