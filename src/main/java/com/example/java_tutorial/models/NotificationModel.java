@@ -2,6 +2,8 @@ package com.example.java_tutorial.models;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -30,6 +32,7 @@ public class NotificationModel {
     @NotNull
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private UserModel user;
 
     @NotNull

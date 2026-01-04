@@ -81,6 +81,7 @@ public class NotificationServiceImp implements NotificationService {
         ArrayList<NotificationModel> notifications = notificationResipository.getAllByUser(user)
                 .stream()
                 .collect(Collectors.toCollection(ArrayList::new));
+        
         return notifications;
     }
 
