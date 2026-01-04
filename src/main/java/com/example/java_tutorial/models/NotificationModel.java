@@ -1,6 +1,6 @@
 package com.example.java_tutorial.models;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -31,7 +31,7 @@ public class NotificationModel {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserModel user;
-    
+
     @NotNull
     private String title;
     @NotNull
@@ -41,7 +41,7 @@ public class NotificationModel {
     @NotNull
     private boolean read;
     @NotNull
-    private Date createdAt;
+    private LocalDateTime createdAt;
     @NotNull
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 }

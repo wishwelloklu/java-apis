@@ -1,6 +1,8 @@
 package com.example.java_tutorial.services;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,10 @@ import com.google.firebase.messaging.Notification;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.stereotype.Service;
+
 @RequiredArgsConstructor
+@Service
 public class NotificationServiceImp implements NotificationService {
     private final AuthService authService;
     private final NotificationResipository notificationResipository;
@@ -27,14 +32,31 @@ public class NotificationServiceImp implements NotificationService {
 
     @Override
     @Async
-    public void sendNotification(String token, String title, String body, @Null Object data) {
+    public void sendNotification(UserModel user, String title, String body, String type, @Null Object data) {
+        NotificationModel notificationModel = NotificationModel.builder()
+                .id(UUID.randomUUID().toString())
+                .user(user)
+                .title(title)
+                .body(body)
+                .type(type)
+                .read(false)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        notificationResipository.save(notificationModel);
+
+        if (user.getDeviceToken() == null || user.getDeviceToken().isBlank()) {
+            return;
+        }
+
         Notification notification = Notification.builder()
                 .setTitle(title)
                 .setBody(body)
                 .build();
 
         Message.Builder messageBuilder = Message.builder()
-                .setToken(token)
+                .setToken(user.getDeviceToken())
                 .setNotification(notification);
 
         if (data != null) {
@@ -56,7 +78,7 @@ public class NotificationServiceImp implements NotificationService {
     @Override
     public ArrayList<NotificationModel> fetchNotification(String email) {
         UserModel user = authService.getUserByEmail(email);
-        ArrayList<NotificationModel> notifications = notificationResipository.getAllByUser(user.getId().toString())
+        ArrayList<NotificationModel> notifications = notificationResipository.getAllByUser(user)
                 .stream()
                 .collect(Collectors.toCollection(ArrayList::new));
         return notifications;
