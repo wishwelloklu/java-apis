@@ -16,15 +16,14 @@ import com.example.java_tutorial.dto.responses.ApiResponseDto;
 import com.example.java_tutorial.models.NotificationModel;
 import com.example.java_tutorial.services.NotificationService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/api/v1/notifications")
+@RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
-
-    public NotificationController(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
 
     @GetMapping("/")
     public ResponseEntity<ApiResponseDto<List<NotificationModel>>> getNotifications() {
