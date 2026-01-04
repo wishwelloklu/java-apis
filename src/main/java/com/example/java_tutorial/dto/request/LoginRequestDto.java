@@ -15,4 +15,8 @@ public class LoginRequestDto {
     @Schema(description = "********")
     @NotNull(message = "Password is required")
     private String password;
+
+    @Schema(description = "Device token")
+    @NotNull(message = "Device token is required")
+    private String deviceToken;
 }

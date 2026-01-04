@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.java_tutorial.components.JwtUtil;
 import com.example.java_tutorial.dto.request.AddUserDto;
+import com.example.java_tutorial.dto.request.ChangePasswordDto;
 import com.example.java_tutorial.dto.request.GenerateOtpDto;
 import com.example.java_tutorial.dto.request.LoginRequestDto;
 import com.example.java_tutorial.dto.request.RefreshTokenRequest;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,7 +98,7 @@ public class UserController {
                 String refreshToken = UUID.randomUUID().toString(); // Generate refresh token
                 LoginResponse loginResponse = null;
                 UserResponseDto uResponseDto = userService.login(loginRequest.getEmail(),
-                                loginRequest.getPassword());
+                                loginRequest.getPassword(), loginRequest.getDeviceToken());
 
                 message = "Login successfully";
                 token = jwtUtil.generateToken(loginRequest.getEmail(), uResponseDto.getRole());
@@ -114,11 +116,9 @@ public class UserController {
 
         @PostMapping("/update_user")
         public ResponseEntity<ApiResponseDto<UserResponseDto>> updateUser(
+                        @RequestBody UpdateUserDto entity) {
 
-                        @RequestBody UpdateUserDto entity,
-                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
-
-                String email = authService.authenticateTokenAndExtractEmail(authHeader);
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
                 UserResponseDto userResponseDto = userService.updateUser(entity, email);
                 if (userResponseDto == null) {
@@ -136,9 +136,8 @@ public class UserController {
         }
 
         @DeleteMapping("/delete_user/{id}")
-        public ResponseEntity<ApiResponseDto<String>> deleteUser(@PathVariable Long id,
-                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
-                String email = authService.authenticateTokenAndExtractEmail(authHeader);
+        public ResponseEntity<ApiResponseDto<String>> deleteUser(@PathVariable Long id) {
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
                 Boolean value = userService.deleteUser(id, email);
                 if (value) {
                         return ResponseEntity.status(HttpStatus.OK).body(
@@ -164,8 +163,6 @@ public class UserController {
                                                 otp));
         }
 
-        // eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ3aXNod2VsbG9rbHVAZ21haWwuY29tIiwiaWF0IjoxNzY3NDYwMzE2LCJleHAiOjE3Njc0NjM5MTYsInJvbGUiOiJBRE1JTiJ9.eZlzpLT_ZY0nPuANPicPdgayZcDtWDO-po8YbhpUVRo
-        // eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ3aXNod2VsbG9rbHVAZ21haWwuY29tIiwiaWF0IjoxNzY3NDA5NTQ3LCJleHAiOjE3Njc0MTMxNDd9.EJTEHpi6OVv89pVYKd7BMvFwEhFu39Lq8lNYdofRFuU
         @PostMapping("/verify_otp")
         public ResponseEntity<ApiResponseDto<Object>> verifyOtp(@RequestBody VerifyOtpDto verifyOtpDto) {
                 Object respObject = new Object();
@@ -196,7 +193,7 @@ public class UserController {
                         } else if (redisData.getClass() == LoginRequestDto.class) {
                                 LoginRequestDto loginRequestDto = (LoginRequestDto) redisData;
                                 respObject = userService.login(loginRequestDto.getEmail(),
-                                                loginRequestDto.getPassword());
+                                                loginRequestDto.getPassword(), loginRequestDto.getDeviceToken());
 
                         }
                         if (respObject != null) {
@@ -270,6 +267,25 @@ public class UserController {
 
                 return ResponseEntity.status(HttpStatus.OK).body(
                                 new ApiResponseDto<>(true, "Token refreshed successfully", loginResponse));
+        }
+
+        @PostMapping("change-password")
+        public ResponseEntity<ApiResponseDto<String>> changePassword(
+                        @RequestBody ChangePasswordDto changePasswordDto) {
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
+                boolean response = userService.changePassword(email, changePasswordDto);
+                if (response) {
+                        return ResponseEntity.status(HttpStatus.OK).body(
+                                        new ApiResponseDto<>(
+                                                        true,
+                                                        "Password changed successfully",
+                                                        null));
+                }
+                return ResponseEntity.status(HttpStatus.OK).body(
+                                new ApiResponseDto<>(
+                                                false,
+                                                "Password not changed",
+                                                null));
         }
 
 }

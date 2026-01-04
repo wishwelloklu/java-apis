@@ -24,6 +24,7 @@ public class PackageServiceImpl implements PackageService {
 
     private final PackageRepository packageRepository;
     private final AuthService authService;
+    private final NotificationService notificationService;
 
     @Override
     public PackageResponse createPackage(CreatePackageDto createPackageDto, UserModel miner) {
@@ -100,6 +101,7 @@ public class PackageServiceImpl implements PackageService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Package not found"));
         packageModel.setStatus(status);
         PackageModel savedPackage = packageRepository.save(packageModel);
+        notificationService.sendNotification(packageModel.miner.getDeviceToken(), "Package Status Updated", "Your package status has been updated to " + status, null);
         return PackageResponse.builder()
                 .id(savedPackage.getId())
                 .mineralType(savedPackage.getMineralType())

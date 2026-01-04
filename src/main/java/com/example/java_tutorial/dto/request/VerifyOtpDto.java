@@ -8,4 +8,5 @@ import lombok.Setter;
 public class VerifyOtpDto {
     private String email;
     private String otp;
+    private String deviceToken;
 }

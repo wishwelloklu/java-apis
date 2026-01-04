@@ -7,6 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.java_tutorial.config.SecurityConfig;
 import com.example.java_tutorial.dto.request.AddUserDto;
+import com.example.java_tutorial.dto.request.ChangePasswordDto;
 import com.example.java_tutorial.dto.request.UpdateUserDto;
 import com.example.java_tutorial.dto.responses.UserResponseDto;
 import com.example.java_tutorial.enums.RoleEnum;
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto login(String email, String password) {
+    public UserResponseDto login(String email, String password, String deviceToken) {
 
         UserModel userModel = userRepository.findByEmail(email);
 
@@ -66,6 +67,8 @@ public class UserServiceImpl implements UserService {
             boolean isPasswordMatch = securityConfig.passwordEncoder().matches(password, userModel.getPassword());
 
             if (isPasswordMatch) {
+                userModel.setDeviceToken(deviceToken);
+                userRepository.save(userModel);
                 UserResponseDto userResponseDto = new UserResponseDto(
                         userModel.getId(),
                         userModel.getFirstName(),
@@ -166,6 +169,21 @@ public class UserServiceImpl implements UserService {
 
     public boolean updateIfExist(String value) {
         return value != null && !value.isBlank();
+    }
+
+    @Override
+    public boolean changePassword(String email, ChangePasswordDto changePasswordDto) {
+      UserModel userModel = userRepository.findByEmail(email);
+      if (userModel == null) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+      }
+      boolean isPasswordMatch = securityConfig.passwordEncoder().matches(changePasswordDto.getOldPassword(), userModel.getPassword());
+      if (!isPasswordMatch) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid password");
+      }
+      userModel.setPassword(securityConfig.passwordEncoder().encode(changePasswordDto.getNewPassword()));
+      userRepository.save(userModel);
+      return true;
     }
 
 }

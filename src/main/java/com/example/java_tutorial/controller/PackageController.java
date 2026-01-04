@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -33,10 +33,9 @@ public class PackageController {
 
         @PostMapping("/create")
         public ResponseEntity<ApiResponseDto<PackageResponse>> createPackage(
-                        @Valid @RequestBody CreatePackageDto entity,
-                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
+                        @Valid @RequestBody CreatePackageDto entity) {
 
-                String email = authService.authenticateTokenAndExtractEmail(authHeader);
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
                 UserModel miner = authService.getUserByEmail(email);
 
                 PackageResponse packageResponse = packageServiceImpl.createPackage(entity, miner);
@@ -49,10 +48,8 @@ public class PackageController {
         }
 
         @GetMapping("/")
-        public ResponseEntity<ApiResponseDto<ArrayList<PackageResponse>>> getPackages(
-                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
-                System.out.println("Token " + authHeader);
-                final String email = authService.authenticateTokenAndExtractEmail(authHeader);
+        public ResponseEntity<ApiResponseDto<ArrayList<PackageResponse>>> getPackages() {
+                String email = SecurityContextHolder.getContext().getAuthentication().getName();
                 ArrayList<PackageResponse> allPackages = packageServiceImpl.getAllPackages(email);
 
                 return ResponseEntity.status(HttpStatus.OK)
@@ -61,10 +58,8 @@ public class PackageController {
 
         @PreAuthorize("hasRole('ADMIN')")
         @PostMapping("/verify")
-        public ResponseEntity<ApiResponseDto<PackageResponse>> postMethodName(@RequestBody VerifyPackageDto entity,
-                        @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        public ResponseEntity<ApiResponseDto<PackageResponse>> postMethodName(@RequestBody VerifyPackageDto entity) {
 
-                authService.authenticateTokenAndExtractEmail(authHeader);
                 PackageResponse packageResponse = packageServiceImpl.verifyPackage(entity.getPackageId().toString(),
                                 entity.getStatus());
 

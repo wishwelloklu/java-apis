@@ -34,7 +34,7 @@ public class PackageServiceTest {
     @Test
     public void testCreatePackage_Success() {
         // 1. Arrange (Prepare valid data)
-        UserModel miner = new UserModel(1L, "John", "Doe", "123456", "pass", "john@test.com", RoleEnum.USER);
+        UserModel miner = new UserModel(1L, "John", "Doe", "123456", "pass", "john@test.com", RoleEnum.USER, "deviceToken");
 
         CreatePackageDto dto = new CreatePackageDto();
         dto.setMineralType("Gold");

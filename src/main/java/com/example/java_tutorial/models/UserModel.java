@@ -65,6 +65,9 @@ public class UserModel implements UserDetails {
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
 
+    @Column(name = "device_token")
+    private String deviceToken;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
