@@ -67,9 +67,9 @@ public class UserController {
                 Boolean userExist = userService.fetchUser(userDto.getEmail());
                 System.out.println("user exist" + user != null);
                 if (user != null || userExist) {
-                        return ResponseEntity.status(HttpStatus.CREATED).body(
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body(
                                         new ApiResponseDto<>(
-                                                        true,
+                                                        false,
                                                         "User with this email already exists",
                                                         null));
                 }
