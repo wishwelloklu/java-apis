@@ -33,4 +33,4 @@ build/
 .vscode/
 
 # Firebase Service Account
-src/main/resources/tracky-21023-firebase-adminsdk-fbsvc-70c6359056.json
+src/main/resources/firebase-adminsdk.json
