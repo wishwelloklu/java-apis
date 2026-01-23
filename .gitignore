@@ -34,3 +34,5 @@ build/
 
 # Firebase Service Account
 src/main/resources/firebase-adminsdk.json
+
+.m2_cache/

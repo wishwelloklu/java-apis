@@ -77,8 +77,9 @@ public class UserController {
                 redisService.setObjectWithExpiry(userDto.getEmail(), userDto, 1, TimeUnit.MINUTES);
                 String otp = otpService.generateOtp(userDto.getEmail());
                 System.err.println("otp " + otp);
-                mailService.sendEmail(userDto.getEmail(), "Your OTP Code",
-                                "Your One-Time Password (OTP) is: " + otp);
+                org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
+                context.setVariable("otp", otp);
+                mailService.sendHtmlEmail(userDto.getEmail(), "Your OTP Code", "index", context);
 
                 RegisterResponseDto registerResponseDto = new RegisterResponseDto("An OTP has been sent to your email",
                                 null);
@@ -156,6 +157,11 @@ public class UserController {
         @PostMapping("/generate_otp")
         public ResponseEntity<ApiResponseDto<String>> generateOtp(@RequestBody GenerateOtpDto entity) {
                 String otp = otpService.generateOtp(entity.getEmail());
+                System.err.println("otp " + otp);
+                org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
+                context.setVariable("otp", otp);
+                mailService.sendHtmlEmail(entity.getEmail(), "Your OTP Code", "index", context);
+
                 return ResponseEntity.status(HttpStatus.OK).body(
                                 new ApiResponseDto<>(
                                                 true,

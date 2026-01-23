@@ -13,8 +13,11 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String sourceEmail;
 
-    public MailService(JavaMailSender mailSender) {
+    private final org.thymeleaf.spring6.SpringTemplateEngine templateEngine;
+
+    public MailService(JavaMailSender mailSender, org.thymeleaf.spring6.SpringTemplateEngine templateEngine) {
         this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
     }
 
     @Async
@@ -27,6 +30,30 @@ public class MailService {
             message.setFrom(sourceEmail);
 
             mailSender.send(message);
+        } catch (MailException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Async
+    public void sendHtmlEmail(String to, String subject, String templateName, org.thymeleaf.context.Context context) {
+        try {
+            jakarta.mail.internet.MimeMessage mimeMessage = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(
+                    mimeMessage, "UTF-8");
+
+            try {
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setFrom(sourceEmail);
+                String htmlContent = templateEngine.process(templateName, context);
+                helper.setText(htmlContent, true);
+                mailSender.send(mimeMessage);
+            } catch (jakarta.mail.MessagingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         } catch (MailException e) {
             e.printStackTrace();
             throw e;

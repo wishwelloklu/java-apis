@@ -1,5 +1,5 @@
 package com.example.java_tutorial.enums;
 
 public enum RoleEnum {
-    ADMIN, USER
+    ADMIN, OFFICIAL, USER
 }

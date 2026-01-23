@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService {
             userModel.setPhoneNumber(addUserDto.getPhoneNumber());
             userModel.setRole(RoleEnum.USER);
             userModel.setPassword(securityConfig.passwordEncoder().encode(addUserDto.getPassword()));
+            
 
             UserModel userModel2 = userRepository.save(userModel);
             UserResponseDto userResponseDto = new UserResponseDto(
