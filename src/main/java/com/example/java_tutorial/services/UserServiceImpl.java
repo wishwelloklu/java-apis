@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.java_tutorial.components.UserMapper;
 import com.example.java_tutorial.config.SecurityConfig;
 import com.example.java_tutorial.dto.request.AddUserDto;
 import com.example.java_tutorial.dto.request.ChangePasswordDto;
@@ -14,38 +15,25 @@ import com.example.java_tutorial.enums.RoleEnum;
 import com.example.java_tutorial.models.UserModel;
 import com.example.java_tutorial.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
+
 public class UserServiceImpl implements UserService {
-    private UserRepository userRepository;
-    private SecurityConfig securityConfig;
 
-    public UserServiceImpl(UserRepository userRepository, SecurityConfig securityConfig) {
-        this.userRepository = userRepository;
-        this.securityConfig = securityConfig;
-
-    }
+    private final UserRepository userRepository;
+    private final SecurityConfig securityConfig;
+    private final UserMapper userMapper;
 
     @Override
     public UserResponseDto registerUser(AddUserDto addUserDto) {
         try {
-            UserModel userModel = new UserModel();
-            userModel.setFirstName(addUserDto.getFirstName());
-            userModel.setLastName(addUserDto.getLastName());
-            userModel.setEmail(addUserDto.getEmail());
-            userModel.setPhoneNumber(addUserDto.getPhoneNumber());
+            UserModel userModel = userMapper.toEntity(addUserDto);
             userModel.setRole(RoleEnum.USER);
             userModel.setPassword(securityConfig.passwordEncoder().encode(addUserDto.getPassword()));
-            
-
-            UserModel userModel2 = userRepository.save(userModel);
-            UserResponseDto userResponseDto = new UserResponseDto(
-                    userModel2.getId(),
-                    userModel2.getFirstName(),
-                    userModel2.getLastName(),
-                    userModel2.getEmail(),
-                    userModel2.getPhoneNumber(),
-                    userModel2.getRole().toString());
-            return userResponseDto;
+            userModel = userRepository.save(userModel);
+            return userMapper.toDto(userModel);
         } catch (DataIntegrityViolationException e) {
             String message = e.getMessage();
             if (message.contains("users_email_unique")) {
@@ -62,26 +50,18 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto login(String email, String password, String deviceToken) {
 
         UserModel userModel = userRepository.findByEmail(email);
-
-        if (userModel != null) {
-
-            boolean isPasswordMatch = securityConfig.passwordEncoder().matches(password, userModel.getPassword());
-
-            if (isPasswordMatch) {
+        String passwordToMatch = userModel != null ? userModel.getPassword() : "fake";
+        boolean isPasswordMatch = securityConfig.passwordEncoder().matches(password, passwordToMatch);
+        if (userModel != null && isPasswordMatch) {
+            if (deviceToken != null && !deviceToken.equals(userModel.getDeviceToken())) {
                 userModel.setDeviceToken(deviceToken);
                 userRepository.save(userModel);
-                UserResponseDto userResponseDto = new UserResponseDto(
-                        userModel.getId(),
-                        userModel.getFirstName(),
-                        userModel.getLastName(),
-                        userModel.getEmail(),
-                        userModel.getPhoneNumber(),
-                        userModel.getRole().toString());
-
-                return userResponseDto;
             }
+            return userMapper.toDto(userModel);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+
     }
 
     @Override
@@ -91,35 +71,11 @@ public class UserServiceImpl implements UserService {
         if (userModel == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No user found");
         }
+        userMapper.updateUserFromDto(updateUserDto, userModel);
 
-        if (updateIfExist(updateUserDto.getEmail())) {
-            userModel.setEmail(updateUserDto.getEmail());
-        }
+        UserModel updatedUser = userRepository.save(userModel);
 
-        if (updateIfExist(updateUserDto.getFirstName())) {
-            userModel.setFirstName(updateUserDto.getFirstName());
-        }
-
-        if (updateIfExist(updateUserDto.getPhoneNumber())) {
-            userModel.setPhoneNumber(updateUserDto.getPhoneNumber());
-        }
-
-        if (updateIfExist(updateUserDto.getLastName())) {
-            userModel.setLastName(updateUserDto.getLastName());
-        }
-
-        UserModel newUserModel = userRepository.save(userModel);
-
-        UserResponseDto userResponseDto = new UserResponseDto(
-                newUserModel.getId(),
-                newUserModel.getFirstName(),
-                newUserModel.getLastName(),
-                newUserModel.getEmail(),
-                newUserModel.getPhoneNumber(),
-                newUserModel.getRole().toString());
-
-        return userResponseDto;
-
+        return userMapper.toDto(updatedUser);
     }
 
     @Override
@@ -156,35 +112,25 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto fetchUserByEmail(String email) {
         UserModel userModel = userRepository.findByEmail(email);
         if (userModel != null) {
-            UserResponseDto userResponseDto = new UserResponseDto(
-                    userModel.getId(),
-                    userModel.getFirstName(),
-                    userModel.getLastName(),
-                    userModel.getEmail(),
-                    userModel.getPhoneNumber(),
-                    userModel.getRole().toString());
-            return userResponseDto;
+            return userMapper.toDto(userModel);
         }
         return null;
     }
 
-    public boolean updateIfExist(String value) {
-        return value != null && !value.isBlank();
-    }
-
     @Override
     public boolean changePassword(String email, ChangePasswordDto changePasswordDto) {
-      UserModel userModel = userRepository.findByEmail(email);
-      if (userModel == null) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-      }
-      boolean isPasswordMatch = securityConfig.passwordEncoder().matches(changePasswordDto.getOldPassword(), userModel.getPassword());
-      if (!isPasswordMatch) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid password");
-      }
-      userModel.setPassword(securityConfig.passwordEncoder().encode(changePasswordDto.getNewPassword()));
-      userRepository.save(userModel);
-      return true;
+        UserModel userModel = userRepository.findByEmail(email);
+        if (userModel == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        boolean isPasswordMatch = securityConfig.passwordEncoder().matches(changePasswordDto.getOldPassword(),
+                userModel.getPassword());
+        if (!isPasswordMatch) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid password");
+        }
+        userModel.setPassword(securityConfig.passwordEncoder().encode(changePasswordDto.getNewPassword()));
+        userRepository.save(userModel);
+        return true;
     }
 
 }

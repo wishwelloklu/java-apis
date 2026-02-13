@@ -2,7 +2,7 @@
 
 # --- CONFIGURATION ---
 WINDOWS_USER="wishw"
-WINDOWS_IP="192.168.0.102"
+WINDOWS_IP="192.168.0.156"
 WSL_DISTRO="Ubuntu-22.04"
 WSL_USER="wishwell"
 PROJECT_PATH="/home/wishwell/projects/java-apis"
