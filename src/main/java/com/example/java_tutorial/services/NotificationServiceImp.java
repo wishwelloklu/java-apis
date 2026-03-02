@@ -53,6 +53,7 @@ public class NotificationServiceImp implements NotificationService {
         Notification notification = Notification.builder()
                 .setTitle(title)
                 .setBody(body)
+                
                 .build();
 
         Message.Builder messageBuilder = Message.builder()
